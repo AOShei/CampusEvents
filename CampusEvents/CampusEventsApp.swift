@@ -10,23 +10,27 @@ import SwiftData
 
 @main
 struct CampusEventsApp: App {
-    var sharedModelContainer: ModelContainer = {
-        let schema = Schema([
-            Item.self,
-        ])
-        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
-
-        do {
-            return try ModelContainer(for: schema, configurations: [modelConfiguration])
-        } catch {
-            fatalError("Could not create ModelContainer: \(error)")
-        }
-    }()
-
+    @StateObject private var viewModel = EventsViewModel()
+    
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            TabView {
+                EventListView()
+                    .tabItem {
+                        Label("Events", systemImage: "calendar")
+                    }
+                
+                FavoritesView()
+                    .tabItem {
+                        Label("Favorites", systemImage: "star.fill")
+                    }
+                
+                CategoriesView()
+                    .tabItem {
+                        Label("Categories", systemImage: "folder.fill")
+                    }
+            }
+            .environmentObject(viewModel)
         }
-        .modelContainer(sharedModelContainer)
     }
 }

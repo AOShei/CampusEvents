@@ -50,3 +50,7 @@ struct AddEventView: View {
         }
     }
 }
+
+#Preview {
+    AddEventView()
+}

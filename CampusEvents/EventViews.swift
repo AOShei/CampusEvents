@@ -234,3 +234,12 @@ struct EventDetailView: View {
         return formatter.string(from: date)
     }
 }
+
+#Preview("Event List") {
+    EventListView().environmentObject(EventsViewModel())
+}
+
+#Preview("Event Detail") {
+    EventDetailView(event: Event.sampleEvents()[0])
+        .environmentObject(EventsViewModel())
+}

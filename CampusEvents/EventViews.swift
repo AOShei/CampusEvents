@@ -102,6 +102,9 @@ struct EventRowView: View {
 // Event Detail View
 struct EventDetailView: View {
     @EnvironmentObject var viewModel: EventsViewModel
+    @State private var showingExpiredAlert = false
+    @State private var showingSuccessAlert = false
+    @State private var alertMessage = ""
     let event: Event
     
     var body: some View {
@@ -174,18 +177,51 @@ struct EventDetailView: View {
                 .padding(.horizontal)
                 
                 // Registration button (demo only)
-                Button(action: {
-                    // Registration action would go here
-                }) {
-                    Text("Register for Event")
-                        .fontWeight(.semibold)
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(event.category.color)
-                        .cornerRadius(10)
-                }
-                .padding()
+		// Inside EventDetailView in EventViews.swift
+		Button(action: {
+		    // 1. Check if the event has already happened
+		    if event.date < Date() {
+			alertMessage = "This event has already expired and cannot be registered for."
+			showingExpiredAlert = true
+		    } else {
+			// 2. If not expired, try to add to calendar
+			CalendarManager.shared.addEventToCalendar(
+			    title: event.title,
+			    description: event.description,
+			    location: event.location,
+			    date: event.date
+			) { success, error in
+			    DispatchQueue.main.sync {
+				if success {
+				    alertMessage = "Successfully added to your calendar with a 30-minute alert!"
+				    showingSuccessAlert = true
+				} else {
+				    alertMessage = "Could not add to calendar. Please check permissions."
+				    showingExpiredAlert = true
+				}
+			    }
+			}
+		    }
+		}) {
+		    Text("Register for Event")
+			.fontWeight(.semibold)
+			.foregroundColor(.white)
+			.frame(maxWidth: .infinity)
+			.padding()
+			.background(event.date < Date() ? Color.gray : event.category.color) // Change color if expired
+			.cornerRadius(10)
+		}
+		// 3. Add the popups (Alerts)
+		.alert("Event Status", isPresented: $showingExpiredAlert) {
+		    Button("OK", role: .cancel) { }
+		} message: {
+		    Text(alertMessage)
+		}
+		.alert("Success!", isPresented: $showingSuccessAlert) {
+		    Button("Great!", role: .cancel) { }
+		} message: {
+		    Text(alertMessage)
+		}.padding()
             }
         }
         .navigationBarTitleDisplayMode(.inline)
